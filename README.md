@@ -2,6 +2,11 @@
 
 **An interactive Shiny application for processing .opj files, performing peak analysis, and visualizing results with dynamic plots.**
 
+## Demo
+
+![ezgif-1-fd7d6c11b2](https://github.com/user-attachments/assets/25b5e736-f402-447e-9aaf-6d31aa92bdc5)
+
+
 ## Features
 
 - **Batch File Upload:** Upload multiple `.opj` files simultaneously for efficient processing.
@@ -20,6 +25,7 @@
 - [RStudio](https://rstudio.com/) (optional but recommended)
 
 ### Clone the Repository
+
 
 ```bash
 git clone https://github.com/flawedme/OpjPeakAnalyzer.git
