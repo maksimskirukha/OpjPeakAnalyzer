@@ -124,12 +124,6 @@ process_files <- function(opj_files, x_col, y_col, min_peak_height, min_peak_dis
         
         if (is.null(analysis)) next
         
-        results <- rbind(results, data.frame(
-          File = csv_name,
-          Number_of_Peaks = analysis$num_peaks,
-          stringsAsFactors = FALSE
-        ))
-        
         p <- ggplot(cleaned_obj, aes_string(x = x_col, y = y_col)) +
           geom_line(color = "blue") +
           geom_point(data = cleaned_obj[analysis$peak_indices, ], aes_string(x = x_col, y = y_col), color = "red", size = 2) +
@@ -139,11 +133,36 @@ process_files <- function(opj_files, x_col, y_col, min_peak_height, min_peak_dis
           theme_minimal()
         
         plots[[csv_name]] <- p
+        
+        # save files with peaks
+        
+        peak_file_name <- paste0(tools::file_path_sans_ext(basename(file)), "_", obj_name, "_peaks.csv")
+        save_dir <- "peak_results"
+        if (!dir.exists(save_dir)) dir.create(save_dir, recursive = TRUE)
+        
+        peak_file_path <- file.path("peak_results", peak_file_name)
+        save_peak_data(cleaned_obj, analysis$peak_indices, peak_file_path, x_col, y_col)
+        
+        results <- rbind(results, data.frame(
+          File = csv_name,
+          Number_of_Peaks = analysis$num_peaks,
+          stringsAsFactors = FALSE
+        ))
       }
     }
   }
   
   return(list(results = results, plots = plots, skipped_files = skipped_files))
+}
+
+save_peak_data <- function(cleaned_obj, peak_indices, file_name, x_col, y_col) {
+  if (length(peak_indices) == 0) return(NULL)
+  
+  
+  
+  peak_data <- cleaned_obj[peak_indices, c(x_col, y_col)]
+  print(peak_data)
+  write.csv(peak_data, file = file_name, row.names = FALSE, fileEncoding = "UTF-8")
 }
 
 ui <- fluidPage(
@@ -167,7 +186,6 @@ ui <- fluidPage(
                  uiOutput("graphs_ui")
         )
       ),
-      downloadButton("download_results", "Download Results"),
       width = 9
     )
   )
@@ -218,6 +236,10 @@ server <- function(input, output, session) {
       incProgress(1)
     })
     
+    print(processed$results)
+    
+    rv$results <- processed$results
+    
     output$results_table <- renderDT({
       datatable(processed$results, options = list(pageLength = 10, scrollX = TRUE))
     })
@@ -266,7 +288,10 @@ server <- function(input, output, session) {
     content = function(file) {
       req(rv$plots)
 
-      write.csv(rv$results, file, row.names = FALSE)
+      print(rv$results)
+
+      
+      write.csv(isolate(rv$results), file, row.names = FALSE)
     }
   )
 }
